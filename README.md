@@ -1,6 +1,8 @@
-# Discord & Github Avatar API
+# Discord & GitHub Avatar API
 
-Free to use PFP API
+Free-to-use Discord and GitHub profile picture (PFP) API.
+
+---
 
 ## Usage
 
@@ -11,6 +13,10 @@ Free to use PFP API
 * **URL:** `/api`
 * **Method:** GET
 * **Description:** Returns a welcome message along with a list of available endpoints.
+
+---
+
+### Discord Endpoints
 
 **Get Avatar Data (JSON):**
 
@@ -30,34 +36,55 @@ Free to use PFP API
   }
   ```
 
+---
+
 **Redirect to Avatar Image:**
-**URLs:**
 
-* `/api/pfp/:userId/image` (default size: 512)
+* **URLs:**
 
-* `/api/pfp/:userId/smallimage` (default size: 128)
-
-* `/api/pfp/:userId/bigimage` (default size: 1024)
-
-* `/api/pfp/:userId/superbigimage` (default size: 4096)
-
+  * `/api/pfp/:userId/image` (default size: 512)
+  * `/api/pfp/:userId/smallimage` (default size: 128)
+  * `/api/pfp/:userId/bigimage` (default size: 1024)
+  * `/api/pfp/:userId/superbigimage` (default size: 4096)
 * **Method:** GET
+* **Description:** Redirects to the actual image URL of the user’s avatar.
+* **Optional Query Parameters:**
 
-* **Description:** Redirects the client to the actual image URL of the user’s avatar. An optional `size` query parameter can override the default size.
+  * `size` – override default size (64–4096, powers of 2)
+  * `format` – specify image format (`png`, `jpeg`, `webp`, `gif`)
 
-**New Avatar Size Endpoint:**
+**Example URL with format:**
+
+```
+/api/pfp/773952016036790272/image?size=1024&format=webp
+```
+
+---
+
+**Custom Avatar Size Endpoint:**
 
 * **URL:** `/api/pfp/:userId/:size`
 * **Method:** GET
-* **Description:** Returns the avatar image URL for the specified user and size (in pixels). You can replace `:size` with any valid image size (128, 512, 1024, etc.).
+* **Description:** Returns the avatar image for a specific size. Size must be a power of two between 64 and 4096. Defaults to 512 if invalid.
+* **Optional Query Parameters:**
 
-  **Example URL:** `/api/pfp/773952016036790272/512`
+  * `format` – `png`, `jpeg`, `webp`, or `gif`
+
+**Example URL:**
+
+```
+/api/pfp/773952016036790272/512?format=webp
+```
+
+---
 
 **Get Raw User Data:**
 
 * **URL:** `/api/user/:userId/raw`
 * **Method:** GET
-* **Description:** Returns the full JSON data received from the Discord API.
+* **Description:** Returns the full JSON data from the Discord API, including avatar, banner, accent color, flags, and collectibles.
+
+---
 
 **Banner Endpoints:**
 
@@ -65,7 +92,11 @@ Free to use PFP API
 
   * **URL:** `/api/banner/:userId`
   * **Method:** GET
-  * **Description:** Returns the banner URL (if available) in JSON format.
+  * **Description:** Returns the banner URL in JSON if available.
+  * **Optional Query Parameters:**
+
+    * `size` – banner size in pixels (powers of 2, default 512)
+    * `format` – `png`, `jpeg`, `webp`, or `gif`
 
 * **Image Redirect:**
 
@@ -75,13 +106,13 @@ Free to use PFP API
 
 ---
 
-# GitHub Endpoints
+### GitHub Endpoints
 
 **Get GitHub User Data (JSON):**
 
 * **URL:** `/api/github/:username`
 * **Method:** GET
-* **Description:** Returns public GitHub user data like username, display name, avatar URL, profile URL, bio, and stats, for the specific user.
+* **Description:** Returns public GitHub user data including username, display name, avatar URL, profile URL, bio, and stats.
 
   **Example Response:**
 
@@ -110,23 +141,24 @@ Free to use PFP API
 
 ---
 
-# Endpoint Overview
+### Full Endpoint Table
 
-| Endpoint                         | Method | Description                                                                 |
-| -------------------------------- | ------ | --------------------------------------------------------------------------- |
-| `/api`                           | GET    | Welcome message + list of available endpoints                               |
-| `/api/:userId`                   | GET    | Returns avatar info (URL, username, display name, discriminator)            |
-| `/api/pfp/:userId/image`         | GET    | Redirects to avatar (512 px)                                                |
-| `/api/pfp/:userId/smallimage`    | GET    | Redirects to avatar (128 px)                                                |
-| `/api/pfp/:userId/bigimage`      | GET    | Redirects to avatar (1024 px)                                               |
-| `/api/pfp/:userId/superbigimage` | GET    | Redirects to avatar (4096 px)                                               |
-| `/api/pfp/:userId/:size`         | GET    | Redirects to avatar at custom size (64–4096 px; defaults to 512 if invalid) |
-| `/api/user/:userId/raw`          | GET    | Returns full raw Discord user JSON data                                     |
-| `/api/banner/:userId`            | GET    | Returns banner URL in JSON                                                  |
-| `/api/banner/:userId/image`      | GET    | Redirects to banner image                                                   |
-| `/api/github/:username`          | GET    | Returns GitHub user info (JSON)                                             |
-| `/api/github/:username/pfp`      | GET    | Redirects to GitHub avatar image                                            |
+| Endpoint                         | Method | Description                                                      |
+| -------------------------------- | ------ | ---------------------------------------------------------------- |
+| `/api`                           | GET    | Welcome message + list of available endpoints                    |
+| `/api/:userId`                   | GET    | Returns avatar info (JSON)                                       |
+| `/api/pfp/:userId/image`         | GET    | Redirects to avatar (512 px)                                     |
+| `/api/pfp/:userId/smallimage`    | GET    | Redirects to avatar (128 px)                                     |
+| `/api/pfp/:userId/bigimage`      | GET    | Redirects to avatar (1024 px)                                    |
+| `/api/pfp/:userId/superbigimage` | GET    | Redirects to avatar (4096 px)                                    |
+| `/api/pfp/:userId/:size`         | GET    | Redirects to avatar at custom size (64–4096 px, defaults to 512) |
+| `/api/user/:userId/raw`          | GET    | Returns full raw Discord user JSON data                          |
+| `/api/banner/:userId`            | GET    | Returns banner URL in JSON                                       |
+| `/api/banner/:userId/image`      | GET    | Redirects to banner image                                        |
+| `/api/github/:username`          | GET    | Returns GitHub user info (JSON)                                  |
+| `/api/github/:username/pfp`      | GET    | Redirects to GitHub avatar image                                 |
 
+---
 
 DOC (Ignore):
 - https://api.github.com/
