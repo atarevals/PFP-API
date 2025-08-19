@@ -55,18 +55,19 @@ async function get_user_data(userId) {
   });
 }
 
-async function get_avatar(userId, size = 512) {
+async function get_avatar(userId, options = {}) {
+  const { size = 512, format = null } = options;
   const user = await get_user_data(userId);
-  let url;
 
+  let url;
   if (user.avatar) {
-    const ext = user.avatar.startsWith("a_") ? "gif" : "png";
+    let ext = user.avatar.startsWith("a_") ? "gif" : "png";
+    if (format) ext = format;
+
     url = `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}.${ext}?size=${size}`;
   } else {
-    const defaultIndex = user.discriminator
-      ? parseInt(user.discriminator) % 5
-      : 0;
-    url = `https://cdn.discordapp.com/embed/avatars/${defaultIndex}.png`;
+    const index = user.discriminator ? parseInt(user.discriminator) % 5 : 0;
+    url = `https://cdn.discordapp.com/embed/avatars/${index}.png`;
   }
 
   return {
@@ -78,12 +79,22 @@ async function get_avatar(userId, size = 512) {
   };
 }
 
-async function get_banner(userId, size = 512) {
+async function get_banner(userId, options = {}) {
+  const { size = 512, format = null } = options;
   const user = await get_user_data(userId);
+
   if (!user.banner) throw new Error("User has no banner");
-  const ext = user.banner.startsWith("a_") ? "gif" : "png";
+  let ext = user.banner.startsWith("a_") ? "gif" : "png";
+
+  if (format) ext = format;
   const url = `https://cdn.discordapp.com/banners/${userId}/${user.banner}.${ext}?size=${size}`;
+
   return { id: user.id, bannerUrl: url };
+}
+
+function sanitizeSize(size) {
+  const allowed = [16,32,64,128,256,512,1024,2048,4096];
+  return allowed.includes(size) ? size : 512;
 }
 
 // GitHub Function
@@ -104,6 +115,7 @@ async function get_github_user(username) {
 app.get("/api", (req, res) => {
   res.json({
     endpoints: [
+      { url: "/api/version", description: "Get API version info" },
       { url: "/api/:userId", description: "Get avatar JSON info (JSON)" },
       { url: "/api/user/:userId/raw", description: "Get raw Discord user data (JSON)" },
       { url: "/api/pfp/:userId/image", description: "Redirect to avatar (512px)" },
@@ -140,14 +152,18 @@ const imageSizes = {
   superbigimage: 4096,
 };
 
-Object.entries(imageSizes).forEach(([endpoint, size]) => {
+Object.entries(imageSizes).forEach(([endpoint, defaultSize]) => {
   app.get(`/api/pfp/:userId/${endpoint}`, async (req, res) => {
     const { userId } = req.params;
+    const { format } = req.query;
+
     if (!isValidUserId(userId)) return res.status(400).json({ error: "Invalid user ID" });
+
     try {
-      const data = await get_avatar(userId, size);
+      const data = await get_avatar(userId, { size: defaultSize, format });
       const imageRes = await fetch(data.avatarUrl);
       const contentType = imageRes.headers.get("content-type");
+
       res.set("Content-Type", contentType);
       res.set("Access-Control-Allow-Origin", "*");
       res.set("Cross-Origin-Resource-Policy", "cross-origin");
@@ -161,16 +177,15 @@ Object.entries(imageSizes).forEach(([endpoint, size]) => {
 
 app.get("/api/pfp/:userId/:size", async (req, res) => {
   const { userId, size } = req.params;
+  const { format } = req.query;
+
   if (!isValidUserId(userId)) return res.status(400).json({ error: "Invalid user ID" });
-  const numericSize = parseInt(size, 10);
-  const allowedSizes = [64, 128, 256, 512, 1024, 2048, 4096];
-  const finalSize = allowedSizes.includes(numericSize) ? numericSize : 512;
+  const numericSize = sanitizeSize(parseInt(size, 10));
 
   try {
-    const data = await get_avatar(userId, finalSize);
+    const data = await get_avatar(userId, { size: numericSize, format });
     const imageRes = await fetch(data.avatarUrl);
-    const contentType = imageRes.headers.get("content-type");
-    res.set("Content-Type", contentType);
+    res.set("Content-Type", imageRes.headers.get("content-type"));
     res.set("Access-Control-Allow-Origin", "*");
     res.set("Cross-Origin-Resource-Policy", "cross-origin");
     imageRes.body.pipe(res);
