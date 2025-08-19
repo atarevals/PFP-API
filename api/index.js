@@ -132,6 +132,15 @@ app.get("/api", (req, res) => {
   });
 });
 
+app.get("/api/version", (req, res) => {
+  res.json({
+    version: "2.0.0",
+    name: "Avatarcyan API",
+    environment: process.env.NODE_ENV || "development",
+    lastBuild: new Date().toISOString()
+  });
+});
+
 // Discord Routes
 app.get("/api/:userId", async (req, res) => {
   const { userId } = req.params;
